@@ -50,12 +50,18 @@ class Contest
         .reject (entry) ->
           _.isNull(entry.coords)
 
+        # Исключаем координаты вне поля
+        .select (entry) =>
+          (0 <= entry.coords[0] < @map.width) and
+          (0 <= entry.coords[1] < @map.height)
+
         # Среди тех человек, которые попали на одну точку, выделяем тех,
         # кто сделал это первым
         .groupBy (entry) ->
           entry.coords.join('-')
         .mapValues (entries) ->
           _.first(_.sortBy entries, (e) -> parseInt(e.repost.date))
+        .values()
 
         # Убираем тех, кто уже когда-то делал выбор, но другой
         .reject (entry) =>
@@ -65,7 +71,6 @@ class Contest
         .each (entry) =>
           @rememberUserChoice(entry.user.id, entry.coords)
 
-        .values()
       .value()
 
   watchRoutine: ->
