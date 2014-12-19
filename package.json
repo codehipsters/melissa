@@ -12,6 +12,7 @@
   "dependencies": {
     "chai": "^1.10.0",
     "lodash": "^2.4.1",
+    "midi-launchpad": "^1.0.3",
     "q": "^1.1.2",
     "stochator": "^0.4.0",
     "vk-api": "^0.1.0"

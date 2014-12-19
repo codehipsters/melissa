@@ -6,7 +6,7 @@ _ = require 'lodash'
 parseCoordinates = require './utils/parseCoordinates'
 TreasureMap      = require './TreasureMap'
 
-WATCH_INTERVAL = 60 * 1000
+WATCH_INTERVAL = 20 * 1000
 
 flatCoords = (coords) ->
   coords.join(':')
