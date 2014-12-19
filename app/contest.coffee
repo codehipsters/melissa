@@ -4,6 +4,8 @@ _ = require 'lodash'
 parseCoordinates = require './utils/parseCoordinates'
 TreasureMap      = require './TreasureMap'
 
+WATCH_INTERVAL = 60 * 1000
+
 class Contest
   constructor: (@vkAPIClient, postLink) ->
     @vk = Q.nbind(vkAPIClient.api, vkAPIClient)
@@ -14,15 +16,21 @@ class Contest
     @map.hideTreasures(options.treasures, options.seed)
 
     @bids = {}
+    do @watchRoutine
 
+  rememberUserChoice: (userId, coords) ->
+    @bids[ userId ] = coords.join(':')
+
+  hasAlreadyMadeAnotherChoice: (userId, coords) ->
+    bid = @bids[ userId ]
+    bid? and bid isnt coords.join(':')
 
   ###
   # Private
   ###
   getContenders: ->
-    console.log @ownerId, @postId
     @vk('wall.getReposts', { owner_id: @ownerId, post_id: @postId, count: 1000 })
-    .then (result) ->
+    .then (result) =>
       reposts  = result.response.items
       profiles = result.response.profiles
 
@@ -48,14 +56,26 @@ class Contest
           entry.coords.join('-')
         .mapValues (entries) ->
           _.first(_.sortBy entries, (e) -> parseInt(e.repost.date))
+
+        # Убираем тех, кто уже когда-то делал выбор, но другой
+        .reject (entry) =>
+          @hasAlreadyMadeAnotherChoice(entry.user.id, entry.coords)
+
+        # Запоминаем выбор пользователей
+        .each (entry) =>
+          @rememberUserChoice(entry.user.id, entry.coords)
+
         .values()
       .value()
 
-      console.log contenders
-
-
   watchRoutine: ->
-    @getContenders().then (res) ->
-      console.log res
+    @getContenders()
+    .then (data) =>
+      console.log data
+    .catch (err) =>
+      console.log err
+    .fin =>
+      setTimeout @watchRoutine.bind(@), WATCH_INTERVAL
+
 
 module.exports = Contest
