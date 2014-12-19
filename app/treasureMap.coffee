@@ -11,6 +11,9 @@ class TreasureMap
   keyFor: (x, y) ->
     "#{x}:#{y}"
 
+  guess: (x, y) ->
+    @treasures[ @keyFor(x, y) ]
+
   hideTreasures: (treasuresMeta, seed) ->
     total = _.chain(treasuresMeta)
       .pluck 'amount'
@@ -25,10 +28,7 @@ class TreasureMap
       .flatten()
       .value()
 
-
-    x = { kind: 'integer', min: 0, max: @width,  seed: seed}
-    y = { kind: 'integer', min: 0, max: @height, seed: seed}
-    randomPoint = new Stochator(x, y)
+    generator = new Stochator({ kind: 'integer', min: 0, max: @square() - 1,  seed: seed})
 
     @treasures = {}
     for kind in kinds
@@ -37,7 +37,12 @@ class TreasureMap
       key = false
 
       while !key or @treasures[ key ]
-        [x, y] = randomPoint.next()
+        point = generator.next()
+
+        # Ищем остаток и делитель
+        x = point % @width
+        y = ((point - x) / @width) | 0
+
         key = @keyFor(x, y)
 
       @treasures[ key ] = { kind }
