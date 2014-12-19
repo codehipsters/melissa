@@ -1,4 +1,4 @@
-numberToCoord = (num) -> parseInt(num)
+numberToCoord = (num) -> parseInt(num) - 1
 letterToCoord = (letter) -> letter.charCodeAt(0) - 'a'.charCodeAt(0)
 
 coordRegexp = ///

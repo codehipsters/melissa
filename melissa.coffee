@@ -18,7 +18,7 @@ contest.start
   seed: 'es6meetup'
   treasures: [
     { kind: 'gold',   amount: 1 }
-    { kind: 'silver', amount: 4 }
+    { kind: 'silver', amount: 3 }
     { kind: 'bronze', amount: 10 }
   ]
 
