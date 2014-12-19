@@ -22,6 +22,10 @@ contest.start
     { kind: 'bronze', amount: 10 }
   ]
 
+
+contest.on 'update', (elems, diff) ->
+  console.log _.map diff, (e) -> e.user.first_name
+
 printMap = (map) ->
   symbols = { gold: '♛', silver: '★', bronze: '☆' }
 

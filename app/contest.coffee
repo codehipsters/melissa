@@ -1,29 +1,44 @@
 Q = require 'q'
 _ = require 'lodash'
 
+{ EventEmitter } = require 'events'
+
 parseCoordinates = require './utils/parseCoordinates'
 TreasureMap      = require './TreasureMap'
 
 WATCH_INTERVAL = 60 * 1000
 
-class Contest
+flatCoords = (coords) ->
+  coords.join(':')
+
+###
+# Класс представляет собой розыгрыш призов
+###
+class Contest extends EventEmitter
   constructor: (@vkAPIClient, postLink) ->
     @vk = Q.nbind(vkAPIClient.api, vkAPIClient)
     [ @ownerId, @postId ] = postLink.split('_')
 
+  ###
+  # Запуск отслеживания постов
+  ###
   start: (options) ->
     @map = new TreasureMap(options.width, options.height)
     @map.hideTreasures(options.treasures, options.seed)
 
     @bids = {}
+    @contenders = []
     do @watchRoutine
 
+  ###
+  # Функции для хранения информации о сделанных догадках
+  ###
   rememberUserChoice: (userId, coords) ->
-    @bids[ userId ] = coords.join(':')
+    @bids[ userId ] = flatCoords(coords)
 
   hasAlreadyMadeAnotherChoice: (userId, coords) ->
     bid = @bids[ userId ]
-    bid? and bid isnt coords.join(':')
+    bid? and bid isnt flatCoords(coords)
 
   ###
   # Private
@@ -58,7 +73,7 @@ class Contest
         # Среди тех человек, которые попали на одну точку, выделяем тех,
         # кто сделал это первым
         .groupBy (entry) ->
-          entry.coords.join('-')
+          flatCoords(entry.coords)
         .mapValues (entries) ->
           _.first(_.sortBy entries, (e) -> parseInt(e.repost.date))
         .values()
@@ -73,10 +88,35 @@ class Contest
 
       .value()
 
+  # Вычитание одного множества ответов из другого
+  diffContenders: (contendersA, contendersB) ->
+    _(contendersA).foldl (diff, elem) =>
+      oldElem = _(contendersB).find (e) ->
+        flatCoords(e.coords) is flatCoords(elem.coords)
+
+      if not oldElem or (elem.user.id isnt oldElem.user.id)
+        diff.push(elem)
+
+      diff
+    , []
+
+  # Обработка ответов, выделение разниц
+  processContenders: (contenders) ->
+    leftDiff  = @diffContenders(contenders,  @contenders)
+    rightDiff = @diffContenders(@contenders, contenders)
+
+    @contenders = contenders
+
+    _(contenders).each (c) =>
+      c.treasure = @map.guess(c.coords)
+
+    if not _.isEmpty(leftDiff) or not _.isEmpty(rightDiff)
+      @emit 'update', contenders, leftDiff
+
   watchRoutine: ->
     @getContenders()
     .then (data) =>
-      console.log data
+      @processContenders(data)
     .catch (err) =>
       console.log err
     .fin =>

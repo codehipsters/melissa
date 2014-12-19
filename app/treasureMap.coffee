@@ -12,6 +12,9 @@ class TreasureMap
     "#{x}:#{y}"
 
   guess: (x, y) ->
+    if arguments.length is 1 and _.isArray(x)
+      [ x, y ] = [ x[0], x[1] ]
+
     @treasures[ @keyFor(x, y) ]
 
   hideTreasures: (treasuresMeta, seed) ->
