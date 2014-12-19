@@ -32,7 +32,7 @@ describe 'TreasureMap', ->
         _.each meta, (treasure) ->
           expect( stats[ treasure.kind ] ).to.eql treasure.amount
 
-    xit 'can use seed to produce equal results', ->
+    it 'can use seed to produce equal results', ->
       map = new TreasureMap(100, 100)
       meta = [
         { kind: 'little',  amount: 2 },

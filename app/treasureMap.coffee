@@ -1,4 +1,5 @@
 _ = require 'lodash'
+Stochator = require 'stochator'
 
 class TreasureMap
   constructor: (@width, @height) ->
@@ -24,6 +25,11 @@ class TreasureMap
       .flatten()
       .value()
 
+
+    x = { kind: 'integer', min: 0, max: @width,  seed: seed}
+    y = { kind: 'integer', min: 0, max: @height, seed: seed}
+    randomPoint = new Stochator(x, y)
+
     @treasures = {}
     for kind in kinds
       [ x, y ] = [ 0, 0 ]
@@ -31,8 +37,7 @@ class TreasureMap
       key = false
 
       while !key or @treasures[ key ]
-        x = _.random(0, @width)
-        y = _.random(0, @height)
+        [x, y] = randomPoint.next()
         key = @keyFor(x, y)
 
       @treasures[ key ] = { kind }
