@@ -4,7 +4,7 @@ parseCoords = require '../app/utils/parseCoordinates'
 
 describe 'utils', ->
   describe '#parseCoordinates', ->
-    it 'parses trivial examples', ->
+    it 'parses strings containing only coordinates', ->
       expect( parseCoords('A1') ).to.eql [0, 1]
       expect( parseCoords('B3') ).to.eql [1, 3]
       expect( parseCoords('Z19') ).to.eql [25, 19]
@@ -13,7 +13,7 @@ describe 'utils', ->
       expect( parseCoords('blabla') ).to.be.a 'null'
       expect( parseCoords('') ).to.be.a 'null'
 
-    it 'matches case', ->
+    it 'ignores case', ->
       expect( parseCoords('f22') ).to.eql [5, 22]
       expect( parseCoords('F2') ).to.eql [5, 2]
 
