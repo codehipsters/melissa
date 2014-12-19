@@ -2,46 +2,47 @@ vkAPI  = require 'vk-api'
 _      = require 'lodash'
 Q      = require 'q'
 
+Contest = require './app/Contest'
+
 config = require './config.json'
-parseCoordinates = require './app/utils/parseCoordinates'
 
 vkAPIClient = new vkAPI
   appID:     config.appId
   appSecret: config.appSecret
 
-vk = Q.nbind(vkAPIClient.api, vkAPIClient)
+contest = new Contest(vkAPIClient, '-60684683_663')
 
-vk('wall.getReposts', { owner_id:  -60684683, post_id: 663, count: 1000 })
-.then (result) ->
-  reposts  = result.response.items
-  profiles = result.response.profiles
+contest.start
+  width:  8
+  height: 8
+  seed: 'es6meetup'
+  treasures: [
+    { kind: 'gold',   amount: 1 }
+    { kind: 'silver', amount: 4 }
+    { kind: 'bronze', amount: 10 }
+  ]
 
-  contenders = _.chain(reposts)
-    # Берем только пользователей
-    .filter (repost) ->
-      repost.from_id > 0
+printMap = (map) ->
+  symbols = { gold: '♛', silver: '★', bronze: '☆' }
 
-    # Отображаем в удобный для нас формат, ищем соответствия
-    # координатам и находим данные пользователя
-    .map (repost) ->
-      repost: repost
-      user:   _(profiles).find(id: repost.from_id)
-      coords: parseCoordinates(repost.text)
+  alphabet = [0...map.width].map (x) ->
+    String.fromCharCode('a'.charCodeAt(0) + x)
 
-    # Исключаем нераспознанные координаты
-    .reject (entry) ->
-      _.isNull(entry.coords)
+  alphabet.unshift(' ')
+  console.log alphabet.join(' ')
 
-    # Среди тех человек, которые попали на одну точку, выделяем тех,
-    # кто сделал это первым
-    .groupBy (entry) ->
-      entry.coords.join('-')
-    .mapValues (entries) ->
-      _.first(_.sortBy entries, (e) -> parseInt(e.repost.date))
-    .values()
-  .value()
+  for y in [0...map.height]
+    line = _([0...map.width]).map (x) ->
+      guess = map.guess(x, y)
 
-  console.log _.map(contenders, (e) -> e.coords.join('-') + ' ' + e.repost.text)
+      symbols[guess?.kind] ? '.'
+
+    line.unshift(y+1)
+    console.log line.join(' ')
+
+
+printMap(contest.map)
+
 
 
 
