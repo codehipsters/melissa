@@ -61,13 +61,13 @@ contest.on 'update', (elems, diff) ->
   launchpad.redraw(elems)
 
   winners =  _(diff).filter (e) -> e.treasure
-
   if winners.length > 0
     launchpad.blinkHeart()
 
-    console.log 'Появились новые победители:'
-    text = _(winners).each (w, i) ->
-      console.log "#{i}. #{w.treasure.kind}: #{w.user.first_name} #{w.user.last_name} http://vk.com/id#{w.user.id}"
+  console.log '❤ Появилось обновление:'
+  _(diff).sortBy (e) -> e.treasure?.kind
+  .each (w, i) ->
+    console.log "  [#{w.coords}] [#{w.treasure?.kind}] #{w.user.first_name} #{w.user.last_name} http://vk.com/id#{w.user.id}"
 
 
 
