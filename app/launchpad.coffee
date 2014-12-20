@@ -12,9 +12,18 @@ class Launchpad extends EventEmitter
     " rrrrrr ",
     "  rrrr  ",
     "   rr   ",
-    "        ",
     "        "
   ]
+
+  renderTranslatedBytes: (bytes) ->
+    translated = _.map [0...8], (y) ->
+      line = _.map [0...8], (x) ->
+        bytes[7 -x][y]
+
+      line.join('')
+
+
+    @launchpad?.renderBytes(translated)
 
   constructor: ->
     try
@@ -45,7 +54,7 @@ class Launchpad extends EventEmitter
 
     if @pixels
       @launchpad?.clear()
-      @launchpad?.renderBytes(@pixels)
+      @renderTranslatedBytes(@pixels)
 
   blinkHeart: ->
     i = 0
@@ -53,7 +62,7 @@ class Launchpad extends EventEmitter
     blinkRoutine = =>
       @launchpad?.clear()
       if i % 2 is 0
-        @launchpad?.renderBytes(HEART_BYTES)
+        @renderTranslatedBytes(HEART_BYTES)
 
       if i++ < 5
         setTimeout(blinkRoutine, 500)
