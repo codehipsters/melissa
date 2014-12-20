@@ -18,7 +18,7 @@ class Launchpad extends EventEmitter
   renderTranslatedBytes: (bytes) ->
     translated = _.map [0...8], (y) ->
       line = _.map [0...8], (x) ->
-        bytes[7 -x][y]
+        bytes[7 - x][y]
 
       line.join('')
 
